@@ -22,13 +22,11 @@ Render_World::~Render_World()
 // to ensure that hit.dist>=small_t.
 Hit Render_World::Closest_Intersection(const Ray& ray)
 {
-
     Hit closestIntersect;
     closestIntersect.object = 0;
     closestIntersect.dist = std::numeric_limits<double>::max();
     closestIntersect.part = -1;
 
-    Hit checkIntersect;
 
     //TODO;
 
@@ -39,9 +37,12 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
         */
 
         for (unsigned int i = 0; i < objects.size(); i++) {
-            checkIntersect = objects[i]->Intersection(ray, -1);
-            if (checkIntersect.dist < closestIntersect.dist and checkIntersect.dist >= small_t) {
+            Hit checkIntersect = objects[i]->Intersection(ray, -1);
+            if (checkIntersect.dist < closestIntersect.dist and checkIntersect.dist >= small_t and checkIntersect.object != 0) {
                 closestIntersect = checkIntersect;
+                closestIntersect.dist = checkIntersect.dist;
+                closestIntersect.object = checkIntersect.object; //Attempt fixing segfault. Maybe the object was never set in some cases? (This didnt work)
+                closestIntersect.part = checkIntersect.part;
             }
         }
 
@@ -82,12 +83,14 @@ vec3 Render_World::Cast_Ray(const Ray& ray,int recursion_depth)
     Hit closestHit = Closest_Intersection(ray);
     if (closestHit.object != 0) {
 
-        color = closestHit.object->material_shader->Shade_Surface(
-                ray,
-                ray.Point(closestHit.dist),
-                closestHit.object->Normal(ray.Point(closestHit.dist),closestHit.part),
-                recursion_depth);
-    } //SEGFAULT????
+
+        Shader* tempShader = closestHit.object->material_shader; //Found the issue. Material shader doesn't seem to exist for this object. wtf?
+        //It appears that the address of closestHit.object isn't memory. Closest_Intersection must be returning an object without a zero pointer, but also isn't in memory.
+        color = tempShader->Shade_Surface(ray, ray.Point(closestHit.dist), closestHit.object->Normal(ray.Point(closestHit.dist),closestHit.part), recursion_depth);
+
+        //color = closestHit.object->material_shader->Shade_Surface(ray, ray.Point(closestHit.dist), closestHit.object->Normal(ray.Point(closestHit.dist),closestHit.part), recursion_depth);
+    } //right now a Bus Error occurs here, might want to check whatever's calling Cast_Ray because this has worked all the way until 06.txt (11 and 12 as well, strangely)
+    //Render_Pixel, which calls Cast_Ray, is fine. So, it must be Closest_Intersection returning some weird object
     else if (closestHit.object == 0) { //Nothing was hit by this ray
         color = background_shader->Shade_Surface(ray, ray.endpoint, ray.endpoint, recursion_depth); // just gonna use ray.endpoint as a throw away lolol
     }
