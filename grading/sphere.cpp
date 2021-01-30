@@ -12,7 +12,7 @@ Hit Sphere::Intersection(const Ray& ray, int part) const
     double discriminant = b*b - (4*C);
 
     if (discriminant <= 0) { //no intersection
-        result.object = 0; //SEGFAULT fixing...
+        result.object = 0; //SEGFAULT fixing... IT WORKED!!! Turns out Sphere intersection was returning a bad pointer because it was never set to anything...
         return result;
     }
     else {

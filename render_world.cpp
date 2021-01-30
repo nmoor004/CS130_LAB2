@@ -30,12 +30,6 @@ Hit Render_World::Closest_Intersection(const Ray& ray)
 
     //TODO;
 
-   /* if (this->objects.size() > 0) {
-        closestIntersect = objects[0]->Intersection(ray, -1);
-       // SEGFAULT; DONT DO THIS
-       // changed unsigned int i to 0, 12 points now that i fixed this
-        */
-
         for (unsigned int i = 0; i < objects.size(); i++) {
             Hit checkIntersect = objects[i]->Intersection(ray, -1);
             if (checkIntersect.dist < closestIntersect.dist and checkIntersect.dist >= small_t and checkIntersect.object != 0) {
