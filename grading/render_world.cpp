@@ -60,6 +60,7 @@ void Render_World::Render_Pixel(const ivec2& pixel_index)
 
 void Render_World::Render()
 {
+
     if(!disable_hierarchy)
         Initialize_Hierarchy();
     //set min_t to a large value?? where?
