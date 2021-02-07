@@ -28,8 +28,13 @@ Shade_Surface(const Ray& ray,const vec3& intersection_point,
         Light* currentLight = world.lights[i];
         Ray vector_to_light;
         vector_to_light.endpoint = intersection_point;
-        vector_to_light.direction  = (currentLight->position - intersection_point).normalized();
+        vector_to_light.direction  = (currentLight->position - intersection_point).normalized(); //shadow ray
+        Hit checkShadow = world.Closest_Intersection(vector_to_light);
+        double shadowRayMagnitude = (checkShadow.dist*vector_to_light.direction).magnitude();
 
+        if ( (checkShadow.object) and (shadowRayMagnitude > small_t) and (shadowRayMagnitude < (currentLight->position - intersection_point).magnitude() and (world.enable_shadows)) ){
+            continue;
+        }
         COLOR_d = COLOR_d + color_diffuse*currentLight->Emitted_Light(currentLight->position - intersection_point)*std::max(dot(normal, vector_to_light.direction), static_cast<double>(0));
 
         //Determine specular
